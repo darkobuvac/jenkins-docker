@@ -1,0 +1,4 @@
+/agents/postman/*
+!/agents/postman/Dockerfile
+!/agents/postman/Jenkinsfile
+.env

@@ -1,0 +1,81 @@
+@Library("slack-library") _
+
+pipeline {
+    
+    parameters {
+      string(name: 'REPO', defaultValue: 'https://github.com/darkobuvac/postman-collection-runner.git', description: 'Url of github repository')
+      string(name: 'DOCKER_IMAGE', defaultValue: 'ghcr.io/codaxy/cxo-service-order-management:latest', description: 'CxO service docker image')
+      string(name: 'SERVICE_NAME', defaultValue: 'service-order-management', description: 'CxO service name')
+    }
+
+    agent none
+
+    stages {
+
+        stage('Cloning git') {
+
+          agent {
+            label 'postman-agent'
+          }
+
+          steps {
+            git branch: "master", url: """${params.REPO}"""
+          }
+        }
+
+        stage('Run containers'){
+          agent {
+            label 'docker-agent-one'
+          }
+
+          steps{
+            sh 'docker run -d --name cxo_testing_db -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres --network jenkins-docker_default --rm postgres:latest'
+            sh """docker run -d --name ${params.SERVICE_NAME}-test -e ConnectionStrings__Database="Host=cxo_testing_db;Port=5432;Database="${params.SERVICE_NAME}";Username=postgres;Password=postgres;" --network jenkins-docker_default --rm ${params.DOCKER_IMAGE}"""   
+          }
+        }
+        
+        stage('Run postman collection') {
+
+          agent {
+            label 'postman-agent'
+          }
+
+          steps{
+            withCredentials([string(credentialsId: 'slack-bot-token-2', variable: 'bot-token'), string(credentialsId: 'slack-bot-token', variable: 'bot-webhook')]) {
+              sh "newman run postman-collection.json --environment postman-environment.json -r htmlextra,cli,junit,slackmsg --reporter-htmlextra-export reports/TestResults.html --reporter-junit-export reports/TestResult.xml --reporter-slackmsg-webhookurl 'webhook_url' -x --iteration-count 2"
+            }
+          }
+        }
+
+        stage('Publish HTML report'){
+          agent{
+              label 'postman-agent'
+          }
+
+          steps{
+            publishHTML([allowMissing: false, alwaysLinkToLastBuild: false, keepAll: false, reportDir: 'reports', reportFiles: 'TestResults.html', reportName: 'Testing report', reportTitles: '', useWrapperFileDirectly: true])
+          }
+        }
+
+        stage('Publish JUnit report'){
+          agent{
+              label 'postman-agent'
+          }
+
+          steps{
+            junit skipMarkingBuildUnstable:true, skipPublishingChecks: true, testResults: 'reports/TestResult.xml'
+          }
+        }
+    }
+    
+    post {
+        always {
+          node('docker-agent-one'){
+            script{
+              sh """docker stop "${params.SERVICE_NAME}"-test && docker stop cxo_testing_db"""
+            }
+          }
+        }
+    }
+}
+

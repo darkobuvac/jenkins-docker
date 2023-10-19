@@ -1,0 +1,69 @@
+version: '3.8'
+
+services:
+  jenkins:
+    container_name: jenkins-master
+    build:
+      context: ./master
+      dockerfile: Dockerfile
+      args:
+         HOST_UID: ${HOST_UID}
+         HOST_GID: ${HOST_GID}
+    env_file:
+      - .env
+    restart: unless-stopped
+    user: jenkins
+    volumes:
+      - jenkins_data:/var/jenkins_home:rw
+    ports:
+      - "50001:8080"
+      - "50002:50000"
+    networks:
+      - jenkins
+
+  docker-slave:
+    container_name: jenkins-docker-slave
+    build:
+      context: ./agents/docker
+      args:
+         HOST_UID: ${HOST_UID}
+         HOST_GID: ${HOST_GID}
+    privileged: true
+    user: jenkins
+    restart: unless-stopped
+    expose:
+      - 22
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
+    volumes:
+      - ${HOST_DOCKER}:/var/run/docker.sock
+      - docker_slave:/home/jenkins
+    networks:
+      - jenkins
+
+  postman-slave:
+    container_name: jenkins-postman-slave
+    build:
+      context: ./agents/postman
+      dockerfile: Dockerfile
+    volumes:
+      - postman_newman:/etc/newman
+      - postman_slave:/home/jenkins
+    privileged: true
+    restart: unless-stopped
+    user: jenkins
+    expose:
+      - 22
+    environment:
+      - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
+    networks:
+      - jenkins
+
+volumes:
+   jenkins_data:
+   docker_slave:
+   postman_slave:
+   postman_newman:
+
+networks:
+   jenkins:

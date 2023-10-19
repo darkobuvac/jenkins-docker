@@ -160,3 +160,8 @@ docker-compose down
 - If the test is successful, the agent status will be displayed as online.
 
 Now, the Jenkins agent is securely connected to the master node using the SSH key pair. This setup allows Jenkins to execute jobs and tasks on the agent node via SSH, enabling distributed and parallelized builds and deployments in your CI/CD pipelines.
+
+
+### NOTE
+
+To add more agents, create appropriate `Dockerfile` file and update `docker-compose.yml` with new services (*agents*). To connect with master node, follow [steps](#connecting-jenkins-agent-to-master-node-with-ssh-key-pair) above.

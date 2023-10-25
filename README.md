@@ -161,7 +161,16 @@ docker-compose down
 
 Now, the Jenkins agent is securely connected to the master node using the SSH key pair. This setup allows Jenkins to execute jobs and tasks on the agent node via SSH, enabling distributed and parallelized builds and deployments in your CI/CD pipelines.
 
+___
 
 ### NOTE
 
-To add more agents, create appropriate `Dockerfile` file and update `docker-compose.yml` with new services (*agents*). To connect with master node, follow [steps](#connecting-jenkins-agent-to-master-node-with-ssh-key-pair) above.
+- To add more agents, create appropriate `Dockerfile` file and update `docker-compose.yml` with new services (*agents*). To connect with master node, follow [steps](#connecting-jenkins-agent-to-master-node-with-ssh-key-pair) above.
+
+
+###### Enable Jenkins to render HTML files
+
+- To enable jenkins to render generated HTML reports, *Content Security Policy* needs to be change. To enable this, go to *Manage Jenkins > Script Console*. In console past the following command and enable HTML rendering:
+  ```bash
+  System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
+  ```

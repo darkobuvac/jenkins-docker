@@ -170,7 +170,7 @@ ___
 
 ###### Enable Jenkins to render HTML files
 
-- To enable jenkins to render generated HTML reports, *Content Security Policy* needs to be change. To enable this, go to *Manage Jenkins > Script Console*. In console past the following command and enable HTML rendering:
+- To enable jenkins to render generated HTML reports, *Content Security Policy* needs to be change. To enable this, go to *Manage Jenkins > Script Console*. In console past the following command and click run:
   ```bash
   System.setProperty("hudson.model.DirectoryBrowserSupport.CSP", "")
   ```

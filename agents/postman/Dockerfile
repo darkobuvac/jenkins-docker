@@ -21,8 +21,6 @@ RUN apt-get update && sudo apt-get install nodejs -y && sudo apt-get install nan
 
 WORKDIR /etc/newman
 
-COPY ./src .
-
 RUN curl -o- "https://dl-cli.pstmn.io/install/linux64.sh" | sh
 
 RUN npm install -g newman newman-reporter-html newman-reporter-junitfull newman-reporter-htmlextra newman-reporter-slackmsg ajv

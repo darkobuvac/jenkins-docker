@@ -1,6 +1,15 @@
 version: '3.8'
 
 services:
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8880:80"
+    restart: always
+    volumes:
+      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+
   jenkins:
     container_name: jenkins-master
     build:
@@ -15,9 +24,6 @@ services:
     user: jenkins
     volumes:
       - jenkins_data:/var/jenkins_home:rw
-    ports:
-      - "50001:8080"
-      - "50002:50000"
     networks:
       - jenkins
 

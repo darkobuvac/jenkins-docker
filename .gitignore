@@ -2,3 +2,4 @@
 !/agents/postman/Dockerfile
 !/agents/postman/Jenkinsfile
 .env
+/secrets

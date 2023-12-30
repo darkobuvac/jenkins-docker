@@ -6,9 +6,17 @@ services:
     image: nginx:latest
     ports:
       - "8880:80"
+      - "8881:443"
     restart: always
-    volumes:
-      - ./nginx/conf/:/etc/nginx/conf.d/:ro
+    secrets:
+      - source: nginx_internal_cert
+        target: /certs/cert_internal.crt
+      - source: nginx_internal_key
+        target: /certs/key_internal.key
+      - source: nginx_conf
+        target: /etc/nginx/nginx.conf
+    networks:
+      - jenkins
 
   jenkins:
     container_name: jenkins-master
@@ -64,6 +72,29 @@ services:
       - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
     networks:
       - jenkins
+
+  # dotnet-slave:
+  #   container_name: jenkins-dotnet-slave
+  #   build:
+  #     context: ./agents/dotnet
+  #     dockerfile: Dockerfile
+  #   privileged: true
+  #   restart: unless-stopped
+  #   user: jenkins
+  #   expose:
+  #     - 22
+  #   environment:
+  #     - JENKINS_AGENT_SSH_PUBKEY=${JENKINS_AGENT_SSH_PUBKEY}
+  #   networks:
+  #     - jenkins
+
+secrets:
+  nginx_internal_cert:
+    file: secrets/certs/nginx-selfsigned.crt
+  nginx_internal_key:
+    file: secrets/certs/nginx-selfsigned.key
+  nginx_conf:
+    file: nginx/conf/nginx.conf
 
 volumes:
    jenkins_data:

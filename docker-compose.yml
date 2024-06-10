@@ -17,6 +17,8 @@ services:
         target: /etc/nginx/nginx.conf
     networks:
       - jenkins
+    extra_hosts:
+    - "host.docker.internal:host-gateway"
 
   jenkins:
     container_name: jenkins-master
